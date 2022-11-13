@@ -407,7 +407,9 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			exceptionHandlerMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 		}
 
+		// 重新包装 HttpServletRequest 和 HttpServletResponse 成新的 ServletWebRequest
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
+		// 重新构建新的 ModelAndViewContainer
 		ModelAndViewContainer mavContainer = new ModelAndViewContainer();
 
 		ArrayList<Throwable> exceptions = new ArrayList<>();
@@ -422,9 +424,13 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 				Throwable cause = exToExpose.getCause();
 				exToExpose = (cause != exToExpose ? cause : null);
 			}
+
+			// 将异常存储参数数组
 			Object[] arguments = new Object[exceptions.size() + 1];
 			exceptions.toArray(arguments);  // efficient arraycopy call in ArrayList
 			arguments[arguments.length - 1] = handlerMethod;
+
+			// 提交给 ServiceInvocableHandlerMethod - HandlerMethod 执行
 			exceptionHandlerMethod.invokeAndHandle(webRequest, mavContainer, arguments);
 		}
 		catch (Throwable invocationEx) {
@@ -492,12 +498,17 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			}
 		}
 
+		// exceptionHandlerAdviceCache
+		// - ControllerAdviceBean：ExceptionHandlerMethodResolver
 		for (Map.Entry<ControllerAdviceBean, ExceptionHandlerMethodResolver> entry : this.exceptionHandlerAdviceCache.entrySet()) {
 			ControllerAdviceBean advice = entry.getKey();
+
+			// 如果开启 ControllerAdvice||RestControllerAdvice，则 ControllerAdviceBean 统一处理
 			if (advice.isApplicableToBeanType(handlerType)) {
 				ExceptionHandlerMethodResolver resolver = entry.getValue();
 				Method method = resolver.resolveMethod(exception);
 				if (method != null) {
+					// 如果找到相应的 Method，则封装成 ServiceInvocableHandlerMethod
 					return new ServletInvocableHandlerMethod(advice.resolveBean(), method, this.applicationContext);
 				}
 			}

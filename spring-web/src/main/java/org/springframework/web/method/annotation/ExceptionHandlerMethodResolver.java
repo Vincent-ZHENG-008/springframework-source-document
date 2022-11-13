@@ -143,8 +143,11 @@ public class ExceptionHandlerMethodResolver {
 	 */
 	@Nullable
 	public Method resolveMethodByThrowable(Throwable exception) {
+		// 通过异常寻找处理异常降级方法。如果找不到此处 method 为空
 		Method method = resolveMethodByExceptionType(exception.getClass());
 		if (method == null) {
+			// 如果无法匹配异常降级执行方法，则向异常上级进行查找
+			// 通过 throwable 的 parent throwable 递归查找
 			Throwable cause = exception.getCause();
 			if (cause != null) {
 				method = resolveMethodByThrowable(cause);
@@ -162,11 +165,14 @@ public class ExceptionHandlerMethodResolver {
 	 */
 	@Nullable
 	public Method resolveMethodByExceptionType(Class<? extends Throwable> exceptionType) {
+		// exceptionLookupCache - Throwable type lookup local method ：通过依赖类型匹配静态方法
 		Method method = this.exceptionLookupCache.get(exceptionType);
 		if (method == null) {
 			method = getMappedMethod(exceptionType);
 			this.exceptionLookupCache.put(exceptionType, method);
 		}
+
+		// 如果无法匹配，则返回null
 		return (method != NO_MATCHING_EXCEPTION_HANDLER_METHOD ? method : null);
 	}
 

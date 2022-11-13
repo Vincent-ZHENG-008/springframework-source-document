@@ -76,6 +76,10 @@ public class HandlerExceptionResolverComposite implements HandlerExceptionResolv
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex) {
 
 		if (this.resolvers != null) {
+			// HandlerExceptionResolver
+			// - ExceptionHandlerExceptionResolver - ControllerAdvice - ExceptionAdvice 支持
+			// - ResponseStatueExceptionResolver
+			// - DefaultHandlerExceptionResolver
 			for (HandlerExceptionResolver handlerExceptionResolver : this.resolvers) {
 				ModelAndView mav = handlerExceptionResolver.resolveException(request, response, handler, ex);
 				if (mav != null) {

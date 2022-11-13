@@ -169,6 +169,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	 * @see #setMappedHandlerClasses
 	 */
 	protected boolean shouldApplyTo(HttpServletRequest request, @Nullable Object handler) {
+		// handler：OrderOperationController
 		if (handler != null) {
 			if (this.mappedHandlers != null && this.mappedHandlers.contains(handler)) {
 				return true;
