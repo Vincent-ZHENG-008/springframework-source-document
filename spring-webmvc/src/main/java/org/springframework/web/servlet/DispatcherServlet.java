@@ -543,6 +543,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {
+		// 初始化策略
 		initStrategies(context);
 	}
 
@@ -551,17 +552,24 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// 初始化多文件上传处理器
 		initMultipartResolver(context);
+		// 初始化国际化处理器
 		initLocaleResolver(context);
+		// 初始化模版处理器
 		initThemeResolver(context);
 
-		// 初始化 HandlerMappings
+		// 初始化HandlerMapping
 		initHandlerMappings(context);
-
+		// 初始化HandlerAdapter
 		initHandlerAdapters(context);
+		// 初始化异常拦截器
 		initHandlerExceptionResolvers(context);
+		// 初始化视图解析器
 		initRequestToViewNameTranslator(context);
+		// 初始化视图转换器
 		initViewResolvers(context);
+		// 初始化FlashMap管理器
 		initFlashMapManager(context);
 	}
 
@@ -641,6 +649,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
 
+		// 判断是否需要加载所有的HandlerMapping
+		// 默认值为Ture，加载所有的就从Bean容器中获取HandlerMapping类型的值
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
 			Map<String, HandlerMapping> matchingBeans =
@@ -658,6 +668,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 		} else {
 			try {
+				// 若只需要加载一个，则根据name来获取即可
 				HandlerMapping hm = context.getBean(HANDLER_MAPPING_BEAN_NAME, HandlerMapping.class);
 				this.handlerMappings = Collections.singletonList(hm);
 			} catch (NoSuchBeanDefinitionException ex) {
@@ -667,6 +678,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least one HandlerMapping, by registering
 		// a default HandlerMapping if no other mappings are found.
+		// 如果没有HandlerMappings，则尝试从默认策略中获取
 		if (this.handlerMappings == null) {
 			this.handlerMappings = getDefaultStrategies(context, HandlerMapping.class);
 			if (logger.isTraceEnabled()) {
@@ -691,6 +703,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	private void initHandlerAdapters(ApplicationContext context) {
 		this.handlerAdapters = null;
 
+		// 是否需要加载所有的HandlerAdapters
+		// 默认值是True，加载所有的就从Bean容器中获取到HandlerAdapter类型的Bean
 		if (this.detectAllHandlerAdapters) {
 			// Find all HandlerAdapters in the ApplicationContext, including ancestor contexts.
 			Map<String, HandlerAdapter> matchingBeans =
@@ -702,6 +716,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 		} else {
 			try {
+				// 若只需要加载一个，则根据name来获取即可
 				HandlerAdapter ha = context.getBean(HANDLER_ADAPTER_BEAN_NAME, HandlerAdapter.class);
 				this.handlerAdapters = Collections.singletonList(ha);
 			} catch (NoSuchBeanDefinitionException ex) {
@@ -711,6 +726,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least some HandlerAdapters, by registering
 		// default HandlerAdapters if no other adapters are found.
+		// 如果没有HandlerAdapters，则尝试从默认策略中获取
 		if (this.handlerAdapters == null) {
 			this.handlerAdapters = getDefaultStrategies(context, HandlerAdapter.class);
 			if (logger.isTraceEnabled()) {

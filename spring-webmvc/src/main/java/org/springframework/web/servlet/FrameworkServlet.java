@@ -571,7 +571,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		long startTime = System.currentTimeMillis();
 
 		try {
-			// 创建 WebApplicationContext
+			// 创建 WebApplicationContext，并初始化上下文信息
 			this.webApplicationContext = initWebApplicationContext();
 			initFrameworkServlet();
 		} catch (ServletException | RuntimeException ex) {
@@ -604,11 +604,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
 		// 构建 WebApplicationContext，传入 ServletContext
-		WebApplicationContext rootContext =
-				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		// 从 ServletContext 中获得父容器 WebApplicationContext
+		WebApplicationContext rootContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		// 声明子容器
 		WebApplicationContext wac = null;
 
 		// 如果 this.webApplicationContext 已存在，则将其设置为子容器(child ApplicationContext Container)
+		// 建立父子容器之间的关系
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
@@ -626,6 +628,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 				}
 			}
 		}
+
+		// 从 ServletContext 中找 Web 容器的引用是否存在，并创建好默认的IOC容器
 		if (wac == null) {
 			// No context instance was injected at construction time -> see if one
 			// has been registered in the servlet context. If one exists, it is assumed
@@ -633,6 +637,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			// user has performed any initialization such as setting the context id
 			wac = findWebApplicationContext();
 		}
+		// 给上一步的IOC容器赋值
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
 			wac = createWebApplicationContext(rootContext);
@@ -712,8 +717,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		wac.setParent(parent);
 		String configLocation = getContextConfigLocation();
 		if (configLocation != null) {
+			// 绑定配置文件
 			wac.setConfigLocation(configLocation);
 		}
+		// 刷新上下文信息
 		configureAndRefreshWebApplicationContext(wac);
 
 		return wac;

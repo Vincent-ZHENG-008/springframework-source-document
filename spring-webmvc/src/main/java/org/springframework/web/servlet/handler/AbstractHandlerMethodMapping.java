@@ -214,6 +214,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	public void afterPropertiesSet() {
+		// 初始化HandlerMethod
 		initHandlerMethods();
 	}
 
@@ -230,6 +231,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				processCandidateBean(beanName);
 			}
 		}
+
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
@@ -268,6 +270,8 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+
+		// 判断ClassType是否携带 @Controller 或者 @RequestMapping 注解
 		if (beanType != null && isHandler(beanType)) {
 			detectHandlerMethods(beanName);
 		}
@@ -285,6 +289,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 		if (handlerType != null) {
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
+			// 通过方法选择器，获取带有 @RequestMapping 注解的方法，并包装成 RequestMappingInfo
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
@@ -299,8 +304,11 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			} else if (mappingsLogger.isDebugEnabled()) {
 				mappingsLogger.debug(formatMappings(userType, methods));
 			}
+
+			// 循环匹配的方法
 			methods.forEach((method, mapping) -> {
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+				// 注册到MappingRegistry
 				registerHandlerMethod(handler, invocableMethod, mapping);
 			});
 		}
